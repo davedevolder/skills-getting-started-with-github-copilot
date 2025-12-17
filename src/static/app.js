@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="participants-section">
               <h5>Current Participants:</h5>
               <ul>
-                ${details.participants.map(participant => `<li>${participant}</li>`).join('')}
+                ${details.participants.map(participant => `<li>${participant} <span class="delete-icon" data-activity="${name}" data-email="${participant}">×</span></li>`).join('')}
               </ul>
             </div>
           ` : ''}
@@ -42,6 +42,28 @@ document.addEventListener("DOMContentLoaded", () => {
         option.value = name;
         option.textContent = name;
         activitySelect.appendChild(option);
+      });
+
+      // Add event listeners for delete icons
+      document.querySelectorAll('.delete-icon').forEach(icon => {
+        icon.addEventListener('click', async (event) => {
+          const activity = event.target.dataset.activity;
+          const email = event.target.dataset.email;
+          try {
+            const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+              method: 'DELETE',
+            });
+            if (response.ok) {
+              fetchActivities(); // Refresh the list
+            } else {
+              const result = await response.json();
+              alert(result.detail || 'Failed to unregister');
+            }
+          } catch (error) {
+            console.error('Error unregistering:', error);
+            alert('Failed to unregister');
+          }
+        });
       });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
